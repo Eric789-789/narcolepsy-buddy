@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { Textarea } from '@/components/ui/textarea';
-import { getDB, getLogicalSleepDate } from '@/lib/db';
+import { addSleepEntry, getLogicalSleepDate } from '@/lib/supabase-db';
 import { toast } from '@/hooks/use-toast';
 
 interface QuickSleepLogProps {
@@ -24,8 +24,7 @@ export default function QuickSleepLog({ onSaved }: QuickSleepLogProps) {
   const handleSave = async () => {
     setSaving(true);
     try {
-      const db = await getDB();
-      await db.add('sleepEntries', {
+      await addSleepEntry({
         date,
         bedtime: bedtime || undefined,
         sleep_onset: sleepOnset || undefined,

@@ -16,8 +16,10 @@ export type Database = {
     Tables: {
       arm_assignments: {
         Row: {
+          arm: string | null
           arm_name: string
           created_at: string | null
+          date: string | null
           end_date: string | null
           experiment_id: string
           id: string
@@ -26,8 +28,10 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          arm?: string | null
           arm_name: string
           created_at?: string | null
+          date?: string | null
           end_date?: string | null
           experiment_id: string
           id?: string
@@ -36,8 +40,10 @@ export type Database = {
           user_id: string
         }
         Update: {
+          arm?: string | null
           arm_name?: string
           created_at?: string | null
+          date?: string | null
           end_date?: string | null
           experiment_id?: string
           id?: string
@@ -99,35 +105,53 @@ export type Database = {
       }
       experiments: {
         Row: {
+          arma_desc: string | null
+          armb_desc: string | null
           created_at: string | null
           description: string | null
+          design: string | null
           end_date: string | null
+          goal: string | null
           hypothesis: string
           id: string
+          metric: string | null
           name: string
           start_date: string
+          title: string | null
           updated_at: string | null
           user_id: string
         }
         Insert: {
+          arma_desc?: string | null
+          armb_desc?: string | null
           created_at?: string | null
           description?: string | null
+          design?: string | null
           end_date?: string | null
+          goal?: string | null
           hypothesis: string
           id?: string
+          metric?: string | null
           name: string
           start_date: string
+          title?: string | null
           updated_at?: string | null
           user_id: string
         }
         Update: {
+          arma_desc?: string | null
+          armb_desc?: string | null
           created_at?: string | null
           description?: string | null
+          design?: string | null
           end_date?: string | null
+          goal?: string | null
           hypothesis?: string
           id?: string
+          metric?: string | null
           name?: string
           start_date?: string
+          title?: string | null
           updated_at?: string | null
           user_id?: string
         }
@@ -136,27 +160,33 @@ export type Database = {
       med_intakes: {
         Row: {
           created_at: string | null
+          dose_mg: number | null
           id: string
           med_id: string
           notes: string | null
+          taken: boolean | null
           timestamp: string
           updated_at: string | null
           user_id: string
         }
         Insert: {
           created_at?: string | null
+          dose_mg?: number | null
           id?: string
           med_id: string
           notes?: string | null
+          taken?: boolean | null
           timestamp: string
           updated_at?: string | null
           user_id: string
         }
         Update: {
           created_at?: string | null
+          dose_mg?: number | null
           id?: string
           med_id?: string
           notes?: string | null
+          taken?: boolean | null
           timestamp?: string
           updated_at?: string | null
           user_id?: string
@@ -173,37 +203,46 @@ export type Database = {
       }
       medications: {
         Row: {
+          as_needed: boolean | null
           created_at: string | null
           dosage: string
+          dose_mg: number | null
           end_date: string | null
           frequency: string
           id: string
           name: string
           notes: string | null
+          schedule_times: string[] | null
           start_date: string
           updated_at: string | null
           user_id: string
         }
         Insert: {
+          as_needed?: boolean | null
           created_at?: string | null
           dosage: string
+          dose_mg?: number | null
           end_date?: string | null
           frequency: string
           id?: string
           name: string
           notes?: string | null
+          schedule_times?: string[] | null
           start_date: string
           updated_at?: string | null
           user_id: string
         }
         Update: {
+          as_needed?: boolean | null
           created_at?: string | null
           dosage?: string
+          dose_mg?: number | null
           end_date?: string | null
           frequency?: string
           id?: string
           name?: string
           notes?: string | null
+          schedule_times?: string[] | null
           start_date?: string
           updated_at?: string | null
           user_id?: string
@@ -218,7 +257,9 @@ export type Database = {
           end_time: string
           id: string
           notes: string | null
+          planned: boolean | null
           quality: number | null
+          refreshing: number | null
           start_time: string
           updated_at: string | null
           user_id: string
@@ -230,7 +271,9 @@ export type Database = {
           end_time: string
           id?: string
           notes?: string | null
+          planned?: boolean | null
           quality?: number | null
+          refreshing?: number | null
           start_time: string
           updated_at?: string | null
           user_id: string
@@ -242,7 +285,9 @@ export type Database = {
           end_time?: string
           id?: string
           notes?: string | null
+          planned?: boolean | null
           quality?: number | null
+          refreshing?: number | null
           start_time?: string
           updated_at?: string | null
           user_id?: string
@@ -252,11 +297,13 @@ export type Database = {
       sleep_entries: {
         Row: {
           bed_time: string
+          bedtime: string | null
           created_at: string | null
           date: string
           id: string
           notes: string | null
           quality: number | null
+          sleep_onset: string | null
           total_sleep_minutes: number | null
           updated_at: string | null
           user_id: string
@@ -264,11 +311,13 @@ export type Database = {
         }
         Insert: {
           bed_time: string
+          bedtime?: string | null
           created_at?: string | null
           date: string
           id?: string
           notes?: string | null
           quality?: number | null
+          sleep_onset?: string | null
           total_sleep_minutes?: number | null
           updated_at?: string | null
           user_id: string
@@ -276,11 +325,13 @@ export type Database = {
         }
         Update: {
           bed_time?: string
+          bedtime?: string | null
           created_at?: string | null
           date?: string
           id?: string
           notes?: string | null
           quality?: number | null
+          sleep_onset?: string | null
           total_sleep_minutes?: number | null
           updated_at?: string | null
           user_id?: string
@@ -290,26 +341,35 @@ export type Database = {
       }
       user_settings: {
         Row: {
+          bedtime_reminder_enabled: boolean | null
+          bedtime_reminder_time: string | null
           created_at: string | null
           id: string
           notifications: boolean | null
           theme: string | null
+          timezone: string | null
           updated_at: string | null
           user_id: string
         }
         Insert: {
+          bedtime_reminder_enabled?: boolean | null
+          bedtime_reminder_time?: string | null
           created_at?: string | null
           id?: string
           notifications?: boolean | null
           theme?: string | null
+          timezone?: string | null
           updated_at?: string | null
           user_id: string
         }
         Update: {
+          bedtime_reminder_enabled?: boolean | null
+          bedtime_reminder_time?: string | null
           created_at?: string | null
           id?: string
           notifications?: boolean | null
           theme?: string | null
+          timezone?: string | null
           updated_at?: string | null
           user_id?: string
         }

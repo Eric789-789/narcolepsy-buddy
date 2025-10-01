@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
-import { getDB } from '@/lib/db';
+import { addNap } from '@/lib/supabase-db';
 import { toast } from '@/hooks/use-toast';
 
 interface QuickNapLogProps {
@@ -32,8 +32,7 @@ export default function QuickNapLog({ onSaved }: QuickNapLogProps) {
   const handleSave = async () => {
     setSaving(true);
     try {
-      const db = await getDB();
-      await db.add('naps', {
+      await addNap({
         date,
         start,
         end,

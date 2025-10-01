@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Slider } from '@/components/ui/slider';
-import { getDB, autoDetectContext, CheckIn } from '@/lib/db';
+import { addCheckIn, autoDetectContext, CheckIn } from '@/lib/supabase-db';
 import { toast } from '@/hooks/use-toast';
 
 const SSS_LABELS = [
@@ -27,8 +27,7 @@ export default function QuickCheckIn({ onSaved }: QuickCheckInProps) {
   const handleSave = async () => {
     setSaving(true);
     try {
-      const db = await getDB();
-      await db.add('checkIns', {
+      await addCheckIn({
         timestamp: new Date().toISOString(),
         context,
         sss,

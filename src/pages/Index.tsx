@@ -9,7 +9,11 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import {
-  getDB,
+  getAllSleepEntries,
+  getAllNaps,
+  getAllCheckIns,
+  getAllExperiments,
+  getAllArmAssignments,
   computeTotalSleepMinutes,
   computeNapDuration,
   formatMinutesAsTime,
@@ -18,7 +22,8 @@ import {
   CheckIn,
   ArmAssignment,
   Experiment,
-} from '@/lib/db';
+} from '@/lib/supabase-db';
+import { useAuth } from '@/hooks/useAuth';
 import QuickCheckIn from '@/components/QuickCheckIn';
 import QuickSleepLog from '@/components/QuickSleepLog';
 import QuickNapLog from '@/components/QuickNapLog';
@@ -30,12 +35,14 @@ import {
   Pill,
   TrendingUp,
   Clock,
+  LogOut,
 } from 'lucide-react';
 
 type QuickFormType = 'checkin' | 'sleep' | 'nap' | 'med' | null;
 
 export default function Index() {
   const [activeForm, setActiveForm] = useState<QuickFormType>(null);
+  const { signOut, user } = useAuth();
   
   // Dashboard stats
   const [lastTST, setLastTST] = useState<string>('—');
@@ -48,77 +55,73 @@ export default function Index() {
   const [todayArm, setTodayArm] = useState<{ arm: 'A' | 'B'; experiment: Experiment } | null>(null);
 
   const loadDashboardData = async () => {
-    const db = await getDB();
-    const today = new Date().toISOString().split('T')[0];
+    try {
+      const today = new Date().toISOString().split('T')[0];
 
-    // Last night TST
-    const sleepEntries = await db.getAllFromIndex('sleepEntries', 'by-date');
-    const sorted = sleepEntries.sort((a, b) => b.date.localeCompare(a.date));
-    if (sorted.length > 0) {
-      const tst = computeTotalSleepMinutes(sorted[0]);
-      setLastTST(formatMinutesAsTime(tst));
-    }
-
-    // Today's naps
-    const allNaps = await db.getAllFromIndex('naps', 'by-date');
-    const todayNapsList = allNaps.filter((n) => n.date === today);
-    const totalNapMinutes = todayNapsList.reduce((sum, n) => {
-      const dur = computeNapDuration(n);
-      return sum + (dur ?? 0);
-    }, 0);
-    setTodayNaps(formatMinutesAsTime(totalNapMinutes));
-
-    // Latest SSS
-    const checkIns = await db.getAll('checkIns');
-    const sortedCheckIns = checkIns.sort((a, b) =>
-      b.timestamp.localeCompare(a.timestamp)
-    );
-    if (sortedCheckIns.length > 0) {
-      setLatestSSS(sortedCheckIns[0].sss.toString());
-    }
-
-    // Last 7 days avg SSS
-    const last7Days = Array.from({ length: 7 }, (_, i) => {
-      const d = new Date();
-      d.setDate(d.getDate() - (6 - i));
-      return d.toISOString().split('T')[0];
-    });
-
-    const avgByDay = last7Days.map((date) => {
-      const dayCheckIns = checkIns.filter((c) =>
-        c.timestamp.startsWith(date)
-      );
-      if (dayCheckIns.length === 0) return 0;
-      const avg =
-        dayCheckIns.reduce((sum, c) => sum + c.sss, 0) / dayCheckIns.length;
-      return Math.round(avg * 10) / 10;
-    });
-    setAvgSSS7d(avgByDay);
-
-    // Last 7 nights TST
-    const tstByDay = last7Days.map((date) => {
-      const entry = sleepEntries.find((e) => e.date === date);
-      if (!entry) return 0;
-      const tst = computeTotalSleepMinutes(entry);
-      return tst ?? 0;
-    });
-    setTst7d(tstByDay);
-
-    // Check active experiment
-    const experiments = await db.getAll('experiments');
-    const active = experiments.find(
-      (exp) => exp.start_date <= today && exp.end_date >= today
-    );
-    if (active) {
-      const assignments = await db.getAllFromIndex(
-        'armAssignments',
-        'by-experiment',
-        active.id
-      );
-      const todayAssignment = assignments.find((a) => a.date === today);
-      if (todayAssignment) {
-        setTodayArm({ arm: todayAssignment.arm, experiment: active });
+      // Last night TST
+      const sleepEntries = await getAllSleepEntries();
+      if (sleepEntries.length > 0) {
+        const tst = computeTotalSleepMinutes(sleepEntries[0]);
+        setLastTST(formatMinutesAsTime(tst));
       }
+
+      // Today's naps
+      const allNaps = await getAllNaps();
+      const todayNapsList = allNaps.filter((n) => n.date === today);
+      const totalNapMinutes = todayNapsList.reduce((sum, n) => {
+        const dur = computeNapDuration(n);
+        return sum + (dur ?? 0);
+      }, 0);
+      setTodayNaps(formatMinutesAsTime(totalNapMinutes));
+
+      // Latest SSS
+      const checkIns = await getAllCheckIns();
+      if (checkIns.length > 0) {
+        setLatestSSS(checkIns[0].sss.toString());
+      }
+
+      // Last 7 days avg SSS
+      const last7Days = Array.from({ length: 7 }, (_, i) => {
+        const d = new Date();
+        d.setDate(d.getDate() - (6 - i));
+        return d.toISOString().split('T')[0];
+      });
+
+      const avgByDay = last7Days.map((date) => {
+        const dayCheckIns = checkIns.filter((c) =>
+          c.timestamp.startsWith(date)
+        );
+        if (dayCheckIns.length === 0) return 0;
+        const avg =
+          dayCheckIns.reduce((sum, c) => sum + c.sss, 0) / dayCheckIns.length;
+        return Math.round(avg * 10) / 10;
+      });
+      setAvgSSS7d(avgByDay);
+
+      // Last 7 nights TST
+      const tstByDay = last7Days.map((date) => {
+        const entry = sleepEntries.find((e) => e.date === date);
+        if (!entry) return 0;
+        const tst = computeTotalSleepMinutes(entry);
+        return tst ?? 0;
+      });
+      setTst7d(tstByDay);
+
+      // Check active experiment
+      const experiments = await getAllExperiments();
+      const active = experiments.find(
+        (exp) => exp.start_date <= today && exp.end_date >= today
+      );
+      if (active && active.id) {
+        const assignments = await getAllArmAssignments();
+        const expAssignments = assignments.filter(a => a.experiment_id === active.id);
+        const todayAssignment = expAssignments.find((a) => a.date === today);
+        if (todayAssignment) {
+          setTodayArm({ arm: todayAssignment.arm, experiment: active });
+        }
+      }
+    } catch (error) {
+      console.error('Error loading dashboard data:', error);
     }
   };
 
@@ -135,13 +138,23 @@ export default function Index() {
     <div className="min-h-screen bg-background p-4 md:p-8">
       <div className="max-w-7xl mx-auto space-y-8">
         {/* Header */}
-        <header className="space-y-2">
-          <h1 className="text-4xl font-bold text-foreground">
-            Narcolepsy Tracker
-          </h1>
-          <p className="text-lg text-muted-foreground">
-            Fast logging and A/B experimentation for better sleep management
-          </p>
+        <header className="flex items-center justify-between">
+          <div className="space-y-2">
+            <h1 className="text-4xl font-bold text-foreground">
+              Narcolepsy Tracker
+            </h1>
+            <p className="text-lg text-muted-foreground">
+              Fast logging and A/B experimentation for better sleep management
+            </p>
+          </div>
+          <Button
+            variant="outline"
+            onClick={signOut}
+            className="flex items-center gap-2"
+          >
+            <LogOut className="w-4 h-4" />
+            Sign Out
+          </Button>
         </header>
 
         {/* Active Experiment Banner */}

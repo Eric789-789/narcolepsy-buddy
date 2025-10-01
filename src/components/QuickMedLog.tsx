@@ -17,7 +17,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { getDB, Medication } from '@/lib/db';
+import { getAllMedications, addMedication, addMedIntake, Medication } from '@/lib/supabase-db';
 import { toast } from '@/hooks/use-toast';
 import { Plus } from 'lucide-react';
 
@@ -39,9 +39,12 @@ export default function QuickMedLog({ onSaved }: QuickMedLogProps) {
   const [addingMed, setAddingMed] = useState(false);
 
   const loadMedications = async () => {
-    const db = await getDB();
-    const meds = await db.getAll('medications');
-    setMedications(meds);
+    try {
+      const meds = await getAllMedications();
+      setMedications(meds);
+    } catch (error) {
+      console.error('Error loading medications:', error);
+    }
   };
 
   useEffect(() => {
@@ -50,7 +53,7 @@ export default function QuickMedLog({ onSaved }: QuickMedLogProps) {
 
   useEffect(() => {
     if (selectedMedId) {
-      const med = medications.find((m) => m.id?.toString() === selectedMedId);
+      const med = medications.find((m) => m.id === selectedMedId);
       if (med?.dose_mg) {
         setDoseMg(med.dose_mg.toString());
       }
@@ -61,14 +64,13 @@ export default function QuickMedLog({ onSaved }: QuickMedLogProps) {
     if (!newMedName.trim()) return;
     setAddingMed(true);
     try {
-      const db = await getDB();
-      const id = await db.add('medications', {
+      const newMed = await addMedication({
         name: newMedName.trim(),
         dose_mg: newMedDose ? parseFloat(newMedDose) : undefined,
         as_needed: false,
       });
       await loadMedications();
-      setSelectedMedId(id.toString());
+      setSelectedMedId(newMed.id!);
       setShowNewMed(false);
       setNewMedName('');
       setNewMedDose('');
@@ -99,16 +101,15 @@ export default function QuickMedLog({ onSaved }: QuickMedLogProps) {
 
     setSaving(true);
     try {
-      const db = await getDB();
-      await db.add('medIntakes', {
-        medication_id: parseInt(selectedMedId),
+      await addMedIntake({
+        medication_id: selectedMedId,
         timestamp: new Date(timestamp).toISOString(),
         dose_mg: doseMg ? parseFloat(doseMg) : undefined,
         taken: true,
       });
       toast({
         title: 'Intake logged',
-        description: medications.find((m) => m.id?.toString() === selectedMedId)?.name,
+        description: medications.find((m) => m.id === selectedMedId)?.name,
       });
       onSaved?.();
     } catch (error) {
@@ -137,7 +138,7 @@ export default function QuickMedLog({ onSaved }: QuickMedLogProps) {
               </SelectTrigger>
               <SelectContent>
                 {medications.map((med) => (
-                  <SelectItem key={med.id} value={med.id!.toString()}>
+                  <SelectItem key={med.id} value={med.id!}>
                     {med.name}
                     {med.dose_mg && ` (${med.dose_mg} mg)`}
                   </SelectItem>

@@ -77,21 +77,51 @@ export async function getAllSleepEntries(): Promise<SleepEntry[]> {
     .order('date', { ascending: false });
   
   if (error) throw error;
-  return data || [];
+  
+  // Map database columns to app interface
+  return (data || []).map(row => ({
+    id: row.id,
+    date: row.date,
+    bedtime: row.bedtime || row.bed_time,
+    sleep_onset: row.sleep_onset,
+    wake_time: row.wake_time,
+    sleep_quality: row.quality || 3,
+    notes: row.notes,
+  }));
 }
 
 export async function addSleepEntry(entry: Omit<SleepEntry, 'id'>): Promise<SleepEntry> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error('Not authenticated');
 
+  const dbEntry = {
+    user_id: user.id,
+    date: entry.date,
+    bed_time: entry.bedtime || '',
+    bedtime: entry.bedtime,
+    sleep_onset: entry.sleep_onset,
+    wake_time: entry.wake_time || '',
+    quality: entry.sleep_quality,
+    notes: entry.notes,
+  };
+
   const { data, error } = await supabase
     .from('sleep_entries')
-    .insert({ ...entry, user_id: user.id })
+    .insert(dbEntry)
     .select()
     .single();
   
   if (error) throw error;
-  return data;
+  
+  return {
+    id: data.id,
+    date: data.date,
+    bedtime: data.bedtime || data.bed_time,
+    sleep_onset: data.sleep_onset,
+    wake_time: data.wake_time,
+    sleep_quality: data.quality || 3,
+    notes: data.notes,
+  };
 }
 
 export async function updateSleepEntry(id: string, entry: Partial<SleepEntry>): Promise<void> {
@@ -120,21 +150,50 @@ export async function getAllNaps(): Promise<Nap[]> {
     .order('date', { ascending: false });
   
   if (error) throw error;
-  return data || [];
+  
+  return (data || []).map(row => ({
+    id: row.id,
+    date: row.date,
+    start: row.start_time,
+    end: row.end_time,
+    planned: row.planned || false,
+    refreshing: row.refreshing || row.quality || 3,
+    notes: row.notes,
+  }));
 }
 
 export async function addNap(nap: Omit<Nap, 'id'>): Promise<Nap> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error('Not authenticated');
 
+  const dbEntry = {
+    user_id: user.id,
+    date: nap.date,
+    start_time: nap.start,
+    end_time: nap.end,
+    planned: nap.planned,
+    refreshing: nap.refreshing,
+    quality: nap.refreshing,
+    notes: nap.notes,
+  };
+
   const { data, error } = await supabase
     .from('naps')
-    .insert({ ...nap, user_id: user.id })
+    .insert(dbEntry)
     .select()
     .single();
   
   if (error) throw error;
-  return data;
+  
+  return {
+    id: data.id,
+    date: data.date,
+    start: data.start_time,
+    end: data.end_time,
+    planned: data.planned || false,
+    refreshing: data.refreshing || data.quality || 3,
+    notes: data.notes,
+  };
 }
 
 // Check-ins
@@ -145,7 +204,13 @@ export async function getAllCheckIns(): Promise<CheckIn[]> {
     .order('timestamp', { ascending: false });
   
   if (error) throw error;
-  return data || [];
+  
+  return (data || []).map(row => ({
+    id: row.id,
+    timestamp: row.timestamp,
+    context: (row.context as CheckIn['context']) || 'Other',
+    sss: row.sss || 4,
+  }));
 }
 
 export async function addCheckIn(checkIn: Omit<CheckIn, 'id'>): Promise<CheckIn> {
@@ -154,12 +219,23 @@ export async function addCheckIn(checkIn: Omit<CheckIn, 'id'>): Promise<CheckIn>
 
   const { data, error } = await supabase
     .from('check_ins')
-    .insert({ ...checkIn, user_id: user.id })
+    .insert({
+      user_id: user.id,
+      timestamp: checkIn.timestamp,
+      context: checkIn.context,
+      sss: checkIn.sss,
+    })
     .select()
     .single();
   
   if (error) throw error;
-  return data;
+  
+  return {
+    id: data.id,
+    timestamp: data.timestamp,
+    context: (data.context as CheckIn['context']) || 'Other',
+    sss: data.sss || 4,
+  };
 }
 
 // Medications
@@ -170,21 +246,47 @@ export async function getAllMedications(): Promise<Medication[]> {
     .order('name', { ascending: true });
   
   if (error) throw error;
-  return data || [];
+  
+  return (data || []).map(row => ({
+    id: row.id,
+    name: row.name,
+    dose_mg: row.dose_mg,
+    schedule_times: row.schedule_times as string[] | undefined,
+    as_needed: row.as_needed || false,
+  }));
 }
 
 export async function addMedication(med: Omit<Medication, 'id'>): Promise<Medication> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error('Not authenticated');
 
+  const dbEntry = {
+    user_id: user.id,
+    name: med.name,
+    dosage: med.dose_mg?.toString() || '',
+    frequency: '',
+    start_date: new Date().toISOString().split('T')[0],
+    dose_mg: med.dose_mg,
+    schedule_times: med.schedule_times,
+    as_needed: med.as_needed,
+    notes: '',
+  };
+
   const { data, error } = await supabase
     .from('medications')
-    .insert({ ...med, user_id: user.id })
+    .insert(dbEntry)
     .select()
     .single();
   
   if (error) throw error;
-  return data;
+  
+  return {
+    id: data.id,
+    name: data.name,
+    dose_mg: data.dose_mg,
+    schedule_times: data.schedule_times as string[] | undefined,
+    as_needed: data.as_needed || false,
+  };
 }
 
 // Med Intakes
@@ -195,21 +297,44 @@ export async function getAllMedIntakes(): Promise<MedIntake[]> {
     .order('timestamp', { ascending: false });
   
   if (error) throw error;
-  return data || [];
+  
+  return (data || []).map(row => ({
+    id: row.id,
+    medication_id: row.med_id,
+    timestamp: row.timestamp,
+    dose_mg: row.dose_mg,
+    taken: row.taken !== undefined ? row.taken : true,
+  }));
 }
 
 export async function addMedIntake(intake: Omit<MedIntake, 'id'>): Promise<MedIntake> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error('Not authenticated');
 
+  const dbEntry = {
+    user_id: user.id,
+    med_id: intake.medication_id,
+    timestamp: intake.timestamp,
+    dose_mg: intake.dose_mg,
+    taken: intake.taken,
+    notes: '',
+  };
+
   const { data, error } = await supabase
     .from('med_intakes')
-    .insert({ ...intake, user_id: user.id })
+    .insert(dbEntry)
     .select()
     .single();
   
   if (error) throw error;
-  return data;
+  
+  return {
+    id: data.id,
+    medication_id: data.med_id,
+    timestamp: data.timestamp,
+    dose_mg: data.dose_mg,
+    taken: data.taken !== undefined ? data.taken : true,
+  };
 }
 
 // Experiments
@@ -220,21 +345,58 @@ export async function getAllExperiments(): Promise<Experiment[]> {
     .order('start_date', { ascending: false });
   
   if (error) throw error;
-  return data || [];
+  
+  return (data || []).map(row => ({
+    id: row.id,
+    title: row.title || row.name,
+    goal: row.goal,
+    metric: (row.metric as Experiment['metric']) || 'Midday SSS avg',
+    start_date: row.start_date,
+    end_date: row.end_date,
+    design: 'Block' as const,
+    armA_desc: row.arma_desc || '',
+    armB_desc: row.armb_desc || '',
+  }));
 }
 
 export async function addExperiment(exp: Omit<Experiment, 'id'>): Promise<Experiment> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error('Not authenticated');
 
+  const dbEntry = {
+    user_id: user.id,
+    name: exp.title,
+    title: exp.title,
+    hypothesis: '',
+    goal: exp.goal,
+    metric: exp.metric,
+    design: exp.design,
+    armA_desc: exp.armA_desc,
+    armB_desc: exp.armB_desc,
+    start_date: exp.start_date,
+    end_date: exp.end_date,
+    description: exp.goal,
+  };
+
   const { data, error } = await supabase
     .from('experiments')
-    .insert({ ...exp, user_id: user.id })
+    .insert(dbEntry)
     .select()
     .single();
   
   if (error) throw error;
-  return data;
+  
+  return {
+    id: data.id,
+    title: data.title || data.name,
+    goal: data.goal,
+    metric: (data.metric as Experiment['metric']) || 'Midday SSS avg',
+    start_date: data.start_date,
+    end_date: data.end_date,
+    design: 'Block' as const,
+    armA_desc: data.arma_desc || '',
+    armB_desc: data.armb_desc || '',
+  };
 }
 
 // Arm Assignments
@@ -242,24 +404,46 @@ export async function getAllArmAssignments(): Promise<ArmAssignment[]> {
   const { data, error } = await supabase
     .from('arm_assignments')
     .select('*')
-    .order('date', { ascending: false });
+    .order('start_date', { ascending: false });
   
   if (error) throw error;
-  return data || [];
+  
+  return (data || []).map(row => ({
+    id: row.id,
+    experiment_id: row.experiment_id,
+    date: row.date || row.start_date,
+    arm: (row.arm || (row.arm_name === 'A' ? 'A' : 'B')) as 'A' | 'B',
+  }));
 }
 
 export async function addArmAssignment(assignment: Omit<ArmAssignment, 'id'>): Promise<ArmAssignment> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error('Not authenticated');
 
+  const dbEntry = {
+    user_id: user.id,
+    experiment_id: assignment.experiment_id,
+    arm_name: assignment.arm,
+    arm: assignment.arm,
+    date: assignment.date,
+    start_date: assignment.date,
+    end_date: '',
+  };
+
   const { data, error } = await supabase
     .from('arm_assignments')
-    .insert({ ...assignment, user_id: user.id })
+    .insert(dbEntry)
     .select()
     .single();
   
   if (error) throw error;
-  return data;
+  
+  return {
+    id: data.id,
+    experiment_id: data.experiment_id,
+    date: data.date || data.start_date,
+    arm: (data.arm || (data.arm_name === 'A' ? 'A' : 'B')) as 'A' | 'B',
+  };
 }
 
 // Settings
@@ -267,19 +451,36 @@ export async function getSettings(): Promise<Settings | null> {
   const { data, error } = await supabase
     .from('user_settings')
     .select('*')
-    .single();
+    .maybeSingle();
   
-  if (error && error.code !== 'PGRST116') throw error;
-  return data || null;
+  if (error) throw error;
+  
+  if (!data) return null;
+  
+  return {
+    id: data.id,
+    timezone: data.timezone || 'America/New_York',
+    bedtime_reminder_time: data.bedtime_reminder_time || '22:30',
+    bedtime_reminder_enabled: data.bedtime_reminder_enabled !== undefined ? data.bedtime_reminder_enabled : true,
+  };
 }
 
 export async function saveSettings(settings: Partial<Settings>): Promise<void> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error('Not authenticated');
 
+  const dbEntry = {
+    user_id: user.id,
+    theme: 'system',
+    notifications: true,
+    timezone: settings.timezone,
+    bedtime_reminder_time: settings.bedtime_reminder_time,
+    bedtime_reminder_enabled: settings.bedtime_reminder_enabled,
+  };
+
   const { error } = await supabase
     .from('user_settings')
-    .upsert({ ...settings, user_id: user.id });
+    .upsert(dbEntry);
   
   if (error) throw error;
 }
