@@ -4,10 +4,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { lazy, Suspense } from "react";
-import { ProtectedRoute } from "@/components/ProtectedRoute";
 
 const Index = lazy(() => import("./pages/Index"));
-const Auth = lazy(() => import("./pages/Auth"));
 const Experiments = lazy(() => import("./pages/Experiments"));
 const WeeklySummary = lazy(() => import("./pages/WeeklySummary"));
 const Data = lazy(() => import("./pages/Data"));
@@ -24,12 +22,11 @@ const App = () => (
       <BrowserRouter>
         <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
           <Routes>
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
-            <Route path="/experiments" element={<ProtectedRoute><Experiments /></ProtectedRoute>} />
-            <Route path="/summary" element={<ProtectedRoute><WeeklySummary /></ProtectedRoute>} />
-            <Route path="/data" element={<ProtectedRoute><Data /></ProtectedRoute>} />
-            <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+            <Route path="/" element={<Index />} />
+            <Route path="/experiments" element={<Experiments />} />
+            <Route path="/summary" element={<WeeklySummary />} />
+            <Route path="/data" element={<Data />} />
+            <Route path="/settings" element={<Settings />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

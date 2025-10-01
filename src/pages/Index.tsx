@@ -23,7 +23,6 @@ import {
   ArmAssignment,
   Experiment,
 } from '@/lib/supabase-db';
-import { useAuth } from '@/hooks/useAuth';
 import QuickCheckIn from '@/components/QuickCheckIn';
 import QuickSleepLog from '@/components/QuickSleepLog';
 import QuickNapLog from '@/components/QuickNapLog';
@@ -34,15 +33,12 @@ import {
   Coffee,
   Pill,
   TrendingUp,
-  Clock,
-  LogOut,
 } from 'lucide-react';
 
 type QuickFormType = 'checkin' | 'sleep' | 'nap' | 'med' | null;
 
 export default function Index() {
   const [activeForm, setActiveForm] = useState<QuickFormType>(null);
-  const { signOut, user } = useAuth();
   
   // Dashboard stats
   const [lastTST, setLastTST] = useState<string>('—');
@@ -138,23 +134,13 @@ export default function Index() {
     <div className="min-h-screen bg-background p-4 md:p-8">
       <div className="max-w-7xl mx-auto space-y-8">
         {/* Header */}
-        <header className="flex items-center justify-between">
-          <div className="space-y-2">
-            <h1 className="text-4xl font-bold text-foreground">
-              Narcolepsy Tracker
-            </h1>
-            <p className="text-lg text-muted-foreground">
-              Fast logging and A/B experimentation for better sleep management
-            </p>
-          </div>
-          <Button
-            variant="outline"
-            onClick={signOut}
-            className="flex items-center gap-2"
-          >
-            <LogOut className="w-4 h-4" />
-            Sign Out
-          </Button>
+        <header className="space-y-2">
+          <h1 className="text-4xl font-bold text-foreground">
+            Narcolepsy Tracker
+          </h1>
+          <p className="text-lg text-muted-foreground">
+            Fast logging and A/B experimentation for better sleep management
+          </p>
         </header>
 
         {/* Active Experiment Banner */}
