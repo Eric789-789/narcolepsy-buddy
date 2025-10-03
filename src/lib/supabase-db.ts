@@ -91,8 +91,11 @@ export async function getAllSleepEntries(): Promise<SleepEntry[]> {
 }
 
 export async function addSleepEntry(entry: Omit<SleepEntry, 'id'>): Promise<SleepEntry> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('Not authenticated');
+  
   const dbEntry = {
-    user_id: '00000000-0000-0000-0000-000000000000',
+    user_id: user.id,
     date: entry.date,
     bed_time: entry.bedtime || '',
     bedtime: entry.bedtime,
@@ -160,8 +163,11 @@ export async function getAllNaps(): Promise<Nap[]> {
 }
 
 export async function addNap(nap: Omit<Nap, 'id'>): Promise<Nap> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('Not authenticated');
+  
   const dbEntry = {
-    user_id: '00000000-0000-0000-0000-000000000000',
+    user_id: user.id,
     date: nap.date,
     start_time: nap.start,
     end_time: nap.end,
@@ -208,10 +214,13 @@ export async function getAllCheckIns(): Promise<CheckIn[]> {
 }
 
 export async function addCheckIn(checkIn: Omit<CheckIn, 'id'>): Promise<CheckIn> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('Not authenticated');
+  
   const { data, error } = await supabase
     .from('check_ins')
     .insert({
-      user_id: '00000000-0000-0000-0000-000000000000',
+      user_id: user.id,
       timestamp: checkIn.timestamp,
       context: checkIn.context,
       sss: checkIn.sss,
@@ -248,8 +257,11 @@ export async function getAllMedications(): Promise<Medication[]> {
 }
 
 export async function addMedication(med: Omit<Medication, 'id'>): Promise<Medication> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('Not authenticated');
+  
   const dbEntry = {
-    user_id: '00000000-0000-0000-0000-000000000000',
+    user_id: user.id,
     name: med.name,
     dosage: med.dose_mg?.toString() || '',
     frequency: '',
@@ -296,8 +308,11 @@ export async function getAllMedIntakes(): Promise<MedIntake[]> {
 }
 
 export async function addMedIntake(intake: Omit<MedIntake, 'id'>): Promise<MedIntake> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('Not authenticated');
+  
   const dbEntry = {
-    user_id: '00000000-0000-0000-0000-000000000000',
+    user_id: user.id,
     med_id: intake.medication_id,
     timestamp: intake.timestamp,
     dose_mg: intake.dose_mg,
@@ -345,8 +360,11 @@ export async function getAllExperiments(): Promise<Experiment[]> {
 }
 
 export async function addExperiment(exp: Omit<Experiment, 'id'>): Promise<Experiment> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('Not authenticated');
+  
   const dbEntry = {
-    user_id: '00000000-0000-0000-0000-000000000000',
+    user_id: user.id,
     name: exp.title,
     title: exp.title,
     hypothesis: '',
@@ -399,8 +417,11 @@ export async function getAllArmAssignments(): Promise<ArmAssignment[]> {
 }
 
 export async function addArmAssignment(assignment: Omit<ArmAssignment, 'id'>): Promise<ArmAssignment> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('Not authenticated');
+  
   const dbEntry = {
-    user_id: '00000000-0000-0000-0000-000000000000',
+    user_id: user.id,
     experiment_id: assignment.experiment_id,
     arm_name: assignment.arm,
     arm: assignment.arm,
@@ -445,8 +466,11 @@ export async function getSettings(): Promise<Settings | null> {
 }
 
 export async function saveSettings(settings: Partial<Settings>): Promise<void> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('Not authenticated');
+  
   const dbEntry = {
-    user_id: '00000000-0000-0000-0000-000000000000',
+    user_id: user.id,
     theme: 'system',
     notifications: true,
     timezone: settings.timezone,
