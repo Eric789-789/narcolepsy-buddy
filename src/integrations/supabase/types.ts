@@ -69,6 +69,7 @@ export type Database = {
           medication: string | null
           notes: string | null
           physical_activity: string | null
+          selected_data_points: string[] | null
           sss: number | null
           symptoms: string | null
           timestamp: string
@@ -82,6 +83,7 @@ export type Database = {
           medication?: string | null
           notes?: string | null
           physical_activity?: string | null
+          selected_data_points?: string[] | null
           sss?: number | null
           symptoms?: string | null
           timestamp: string
@@ -95,9 +97,34 @@ export type Database = {
           medication?: string | null
           notes?: string | null
           physical_activity?: string | null
+          selected_data_points?: string[] | null
           sss?: number | null
           symptoms?: string | null
           timestamp?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      custom_data_points: {
+        Row: {
+          created_at: string | null
+          id: string
+          name: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          name: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          name?: string
           updated_at?: string | null
           user_id?: string
         }

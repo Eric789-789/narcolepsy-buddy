@@ -25,6 +25,13 @@ export interface CheckIn {
   timestamp: string;
   context: 'Morning' | 'Midday' | 'Evening' | 'Other';
   sss: number;
+  notes?: string;
+  selected_data_points?: string[];
+}
+
+export interface CustomDataPoint {
+  id?: string;
+  name: string;
 }
 
 export interface Medication {
@@ -210,6 +217,8 @@ export async function getAllCheckIns(): Promise<CheckIn[]> {
     timestamp: row.timestamp,
     context: (row.context as CheckIn['context']) || 'Other',
     sss: row.sss || 4,
+    notes: row.notes,
+    selected_data_points: row.selected_data_points as string[] || [],
   }));
 }
 
@@ -224,6 +233,8 @@ export async function addCheckIn(checkIn: Omit<CheckIn, 'id'>): Promise<CheckIn>
       timestamp: checkIn.timestamp,
       context: checkIn.context,
       sss: checkIn.sss,
+      notes: checkIn.notes,
+      selected_data_points: checkIn.selected_data_points || [],
     })
     .select()
     .single();
@@ -235,7 +246,54 @@ export async function addCheckIn(checkIn: Omit<CheckIn, 'id'>): Promise<CheckIn>
     timestamp: data.timestamp,
     context: (data.context as CheckIn['context']) || 'Other',
     sss: data.sss || 4,
+    notes: data.notes,
+    selected_data_points: data.selected_data_points as string[] || [],
   };
+}
+
+// Custom Data Points
+export async function getAllCustomDataPoints(): Promise<CustomDataPoint[]> {
+  const { data, error } = await supabase
+    .from('custom_data_points')
+    .select('*')
+    .order('name', { ascending: true });
+  
+  if (error) throw error;
+  
+  return (data || []).map(row => ({
+    id: row.id,
+    name: row.name,
+  }));
+}
+
+export async function addCustomDataPoint(name: string): Promise<CustomDataPoint> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('Not authenticated');
+  
+  const { data, error } = await supabase
+    .from('custom_data_points')
+    .insert({
+      user_id: user.id,
+      name,
+    })
+    .select()
+    .single();
+  
+  if (error) throw error;
+  
+  return {
+    id: data.id,
+    name: data.name,
+  };
+}
+
+export async function deleteCustomDataPoint(id: string): Promise<void> {
+  const { error } = await supabase
+    .from('custom_data_points')
+    .delete()
+    .eq('id', id);
+  
+  if (error) throw error;
 }
 
 // Medications

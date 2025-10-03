@@ -1,9 +1,20 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Slider } from '@/components/ui/slider';
-import { addCheckIn, autoDetectContext, CheckIn } from '@/lib/supabase-db';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from '@/components/ui/dropdown-menu';
+import { ChevronDown } from 'lucide-react';
+import { addCheckIn, autoDetectContext, CheckIn, getAllCustomDataPoints, CustomDataPoint } from '@/lib/supabase-db';
 import { toast } from '@/hooks/use-toast';
+import DataPointsManager from './DataPointsManager';
 
 const SSS_LABELS = [
   'Feeling active, vital, alert, wide awake',
@@ -22,7 +33,31 @@ interface QuickCheckInProps {
 export default function QuickCheckIn({ onSaved }: QuickCheckInProps) {
   const [sss, setSss] = useState(4);
   const [context, setContext] = useState<CheckIn['context']>(autoDetectContext());
+  const [notes, setNotes] = useState('');
+  const [dataPoints, setDataPoints] = useState<CustomDataPoint[]>([]);
+  const [selectedPoints, setSelectedPoints] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    loadDataPoints();
+  }, []);
+
+  const loadDataPoints = async () => {
+    try {
+      const points = await getAllCustomDataPoints();
+      setDataPoints(points);
+    } catch (error) {
+      console.error('Failed to load data points:', error);
+    }
+  };
+
+  const toggleDataPoint = (pointName: string) => {
+    setSelectedPoints((prev) =>
+      prev.includes(pointName)
+        ? prev.filter((p) => p !== pointName)
+        : [...prev, pointName]
+    );
+  };
 
   const handleSave = async () => {
     setSaving(true);
@@ -31,11 +66,15 @@ export default function QuickCheckIn({ onSaved }: QuickCheckInProps) {
         timestamp: new Date().toISOString(),
         context,
         sss,
+        notes,
+        selected_data_points: selectedPoints,
       });
       toast({
         title: 'Check-in saved',
         description: `SSS: ${sss} (${context})`,
       });
+      setNotes('');
+      setSelectedPoints([]);
       onSaved?.();
     } catch (error) {
       toast({
@@ -86,6 +125,54 @@ export default function QuickCheckIn({ onSaved }: QuickCheckInProps) {
           <p className="text-sm text-muted-foreground min-h-[2.5rem]">
             {SSS_LABELS[sss - 1]}
           </p>
+        </div>
+
+        <div className="space-y-3">
+          <Label>Additional Tracking Data</Label>
+          <DropdownMenu onOpenChange={() => loadDataPoints()}>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="w-full justify-between">
+                {selectedPoints.length > 0
+                  ? `${selectedPoints.length} item${selectedPoints.length > 1 ? 's' : ''} selected`
+                  : 'Select data points'}
+                <ChevronDown className="h-4 w-4 opacity-50" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-[var(--radix-dropdown-menu-trigger-width)]">
+              {dataPoints.length === 0 ? (
+                <div className="p-2 text-sm text-muted-foreground">
+                  No data points yet
+                </div>
+              ) : (
+                dataPoints.map((point) => (
+                  <div
+                    key={point.id}
+                    className="flex items-center gap-2 px-2 py-2 cursor-pointer hover:bg-accent"
+                    onClick={() => toggleDataPoint(point.name)}
+                  >
+                    <Checkbox
+                      checked={selectedPoints.includes(point.name)}
+                      onCheckedChange={() => toggleDataPoint(point.name)}
+                    />
+                    <span className="text-sm">{point.name}</span>
+                  </div>
+                ))
+              )}
+              <DropdownMenuSeparator />
+              <DataPointsManager />
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+
+        <div className="space-y-3">
+          <Label htmlFor="notes">Notes (optional)</Label>
+          <Textarea
+            id="notes"
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            placeholder="Any additional observations..."
+            rows={3}
+          />
         </div>
 
         <Button

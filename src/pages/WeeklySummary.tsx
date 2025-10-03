@@ -6,6 +6,15 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { getAllCheckIns, getAllCustomDataPoints } from '@/lib/supabase-db';
+import {
   getDB,
   computeTotalSleepMinutes,
   computeNapDuration,
@@ -13,6 +22,7 @@ import {
 } from '@/lib/db';
 import { toast } from '@/hooks/use-toast';
 import { ArrowLeft, Copy, Download } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 export default function WeeklySummaryPage() {
   const today = new Date();
@@ -23,6 +33,7 @@ export default function WeeklySummaryPage() {
   const [endDate, setEndDate] = useState(today.toISOString().split('T')[0]);
   const [summary, setSummary] = useState('');
   const [generating, setGenerating] = useState(false);
+  const [dataPointsStats, setDataPointsStats] = useState<Array<{ name: string; count: number }>>([]);
 
   const generateSummary = async () => {
     setGenerating(true);
@@ -49,11 +60,27 @@ export default function WeeklySummaryPage() {
           : 0;
 
       // SSS data
-      const allCheckIns = await db.getAll('checkIns');
+      const allCheckIns = await getAllCheckIns();
       const checkInsInRange = allCheckIns.filter((c) => {
         const date = c.timestamp.split('T')[0];
         return date >= startDate && date <= endDate;
       });
+
+      // Custom data points analysis
+      const customDataPoints = await getAllCustomDataPoints();
+      const dataPointCounts = new Map<string, number>();
+      
+      checkInsInRange.forEach((checkIn) => {
+        checkIn.selected_data_points?.forEach((pointName) => {
+          dataPointCounts.set(pointName, (dataPointCounts.get(pointName) || 0) + 1);
+        });
+      });
+
+      const dataPointStats = Array.from(dataPointCounts.entries()).map(([name, count]) => ({
+        name,
+        count,
+      }));
+      setDataPointsStats(dataPointStats);
 
       const sssValues = checkInsInRange.map((c) => c.sss);
       const avgSSS =
@@ -379,6 +406,48 @@ ${expText ? '\n' + expText : ''}`;
             )}
           </CardContent>
         </Card>
+
+        {dataPointsStats.length > 0 && (
+          <Card className="shadow-[var(--shadow-card)]">
+            <CardHeader>
+              <CardTitle>Custom Data Points Tracking</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div>
+                <h3 className="text-sm font-medium mb-4">Frequency Chart</h3>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={dataPointsStats}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" angle={-45} textAnchor="end" height={100} />
+                    <YAxis />
+                    <Tooltip />
+                    <Bar dataKey="count" fill="hsl(var(--primary))" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+
+              <div>
+                <h3 className="text-sm font-medium mb-4">Summary Table</h3>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Data Point</TableHead>
+                      <TableHead className="text-right">Count</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {dataPointsStats.map((stat) => (
+                      <TableRow key={stat.name}>
+                        <TableCell>{stat.name}</TableCell>
+                        <TableCell className="text-right">{stat.count}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         <Card className="shadow-[var(--shadow-card)]">
           <CardHeader>
