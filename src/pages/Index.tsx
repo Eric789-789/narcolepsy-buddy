@@ -34,6 +34,11 @@ import {
   Coffee,
   Pill,
   TrendingUp,
+  LineChart,
+  FileText,
+  FlaskConical,
+  Database,
+  Settings as SettingsIcon,
 } from 'lucide-react';
 
 type QuickFormType = 'checkin' | 'sleep' | 'nap' | 'med' | null;
@@ -341,18 +346,36 @@ export default function Index() {
         {/* Navigation Links */}
         <section>
           <h2 className="text-2xl font-semibold mb-4">More</h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <Button asChild variant="outline" className="h-16">
-              <Link to="/experiments">Experiments</Link>
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+            <Button asChild variant="outline" className="h-16 flex flex-col gap-1">
+              <Link to="/experiments">
+                <FlaskConical className="h-5 w-5" />
+                <span className="text-sm">Experiments</span>
+              </Link>
             </Button>
-            <Button asChild variant="outline" className="h-16">
-              <Link to="/summary">Weekly Summary</Link>
+            <Button asChild variant="outline" className="h-16 flex flex-col gap-1">
+              <Link to="/summary">
+                <FileText className="h-5 w-5" />
+                <span className="text-sm">Summary</span>
+              </Link>
             </Button>
-            <Button asChild variant="outline" className="h-16">
-              <Link to="/data">Data & Export</Link>
+            <Button asChild variant="outline" className="h-16 flex flex-col gap-1">
+              <Link to="/graphs">
+                <LineChart className="h-5 w-5" />
+                <span className="text-sm">Graphs</span>
+              </Link>
             </Button>
-            <Button asChild variant="outline" className="h-16">
-              <Link to="/settings">Settings</Link>
+            <Button asChild variant="outline" className="h-16 flex flex-col gap-1">
+              <Link to="/data">
+                <Database className="h-5 w-5" />
+                <span className="text-sm">Data</span>
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="h-16 flex flex-col gap-1">
+              <Link to="/settings">
+                <SettingsIcon className="h-5 w-5" />
+                <span className="text-sm">Settings</span>
+              </Link>
             </Button>
           </div>
         </section>

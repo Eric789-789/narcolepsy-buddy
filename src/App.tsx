@@ -11,6 +11,7 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 const Index = lazy(() => import("./pages/Index"));
 const Experiments = lazy(() => import("./pages/Experiments"));
 const WeeklySummary = lazy(() => import("./pages/WeeklySummary"));
+const Graphs = lazy(() => import("./pages/Graphs"));
 const Data = lazy(() => import("./pages/Data"));
 const Settings = lazy(() => import("./pages/Settings"));
 const Profile = lazy(() => import("./pages/Profile"));
@@ -33,6 +34,7 @@ const App = () => (
                 <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
                 <Route path="/experiments" element={<ProtectedRoute><Experiments /></ProtectedRoute>} />
                 <Route path="/summary" element={<ProtectedRoute><WeeklySummary /></ProtectedRoute>} />
+                <Route path="/graphs" element={<ProtectedRoute><Graphs /></ProtectedRoute>} />
                 <Route path="/data" element={<ProtectedRoute><Data /></ProtectedRoute>} />
                 <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
                 <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
