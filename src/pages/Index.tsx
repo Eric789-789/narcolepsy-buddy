@@ -27,6 +27,7 @@ import QuickCheckIn from '@/components/QuickCheckIn';
 import QuickSleepLog from '@/components/QuickSleepLog';
 import QuickNapLog from '@/components/QuickNapLog';
 import QuickMedLog from '@/components/QuickMedLog';
+import { UserMenu } from '@/components/UserMenu';
 import {
   Activity,
   Moon,
@@ -134,13 +135,16 @@ export default function Index() {
     <div className="min-h-screen bg-background p-4 md:p-8">
       <div className="max-w-7xl mx-auto space-y-8">
         {/* Header */}
-        <header className="space-y-2">
-          <h1 className="text-4xl font-bold text-foreground">
-            Narcolepsy Tracker
-          </h1>
-          <p className="text-lg text-muted-foreground">
-            Fast logging and A/B experimentation for better sleep management
-          </p>
+        <header className="flex items-start justify-between gap-4">
+          <div className="space-y-2">
+            <h1 className="text-4xl font-bold text-foreground">
+              Narcolepsy Tracker
+            </h1>
+            <p className="text-lg text-muted-foreground">
+              Fast logging and A/B experimentation for better sleep management
+            </p>
+          </div>
+          <UserMenu />
         </header>
 
         {/* Active Experiment Banner */}
